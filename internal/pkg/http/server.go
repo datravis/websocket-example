@@ -55,10 +55,7 @@ func (s *PubSubServer) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	// subscribe to our topic, and ensure we unsubscribe if the client disconnects
 	consumer := s.publisher.Subscribe(topic)
-	defer func() {
-		s.publisher.UnsubscribeAndClose(consumer)
-
-	}()
+	defer s.publisher.UnsubscribeAndClose(consumer)
 
 	// As messages are received, return them to the client
 	for message := range consumer.Channel {

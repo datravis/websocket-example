@@ -10,11 +10,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// PubSubClient handles connecting to the PubSubServer, logging received messages to stdin
 type PubSubClient struct {
 	address string
 	topic   string
 }
 
+// NewPubSubClient instantiates a new PubSubClient
 func NewPubSubClient(address, topic string) *PubSubClient {
 	return &PubSubClient{
 		address,
@@ -22,6 +24,7 @@ func NewPubSubClient(address, topic string) *PubSubClient {
 	}
 }
 
+// Run connects to the server, listens for messages, logging any that are received to stdin
 func (client *PubSubClient) Run() error {
 	// define our connection URL
 	u := url.URL{Scheme: "ws", Host: client.address, Path: "/subscribe"}
