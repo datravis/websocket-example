@@ -2,46 +2,30 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-	"net/url"
 	"os"
-	"os/signal"
 
-	"github.com/gorilla/websocket"
+	pubhttp "github.com/datravis/websocket-example/internal/pkg/http"
 )
 
-var addr = flag.String("addr", "localhost:8081", "http service address")
+var addr = flag.String("address", "localhost:8081", "http service address")
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "usage: %s [topic]\n", os.Args[0])
+	flag.PrintDefaults()
+	os.Exit(2)
+}
 
 func main() {
+	if len(os.Args) != 2 {
+		usage()
+	}
+
 	flag.Parse()
 	log.SetFlags(0)
+	topic := os.Args[1]
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/subscribe"}
-
-	q := u.Query()
-	q.Set("topic", "test")
-	u.RawQuery = q.Encode()
-
-	log.Printf("Connecting to %s", u.String())
-
-	c, resp, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err == websocket.ErrBadHandshake {
-		log.Printf("handshake failed with status %d", resp.StatusCode)
-	}
-	if err != nil {
-		log.Fatal("ERROR: Unable to dial server: ", err)
-	}
-	defer c.Close()
-
-	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			return
-		}
-		log.Printf("recv: %s", message)
-	}
+	client := pubhttp.NewPubSubClient(*addr, topic)
+	log.Fatal(client.Run())
 }
